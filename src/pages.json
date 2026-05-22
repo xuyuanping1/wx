@@ -1,0 +1,88 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-nav-bar(.*)": "@/components/uni-nav-bar.vue",
+      "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/login/index",
+      "style": { "navigationBarTitleText": "" }
+    },
+    {
+      "path": "pages/index/index",
+      "style": { "navigationBarTitleText": "首页" }
+    },
+    {
+      "path": "pages/album/index",
+      "style": { "navigationBarTitleText": "相册" }
+    },
+    {
+      "path": "pages/anniversary/index",
+      "style": { "navigationBarTitleText": "纪念日" }
+    },
+    {
+      "path": "pages/album/create",
+      "style": { "navigationBarTitleText": "新建相册" }
+    },
+    {
+      "path": "pages/album/detail",
+      "style": { "navigationBarTitleText": "相册详情" }
+    },
+    {
+      "path": "pages/album/edit",
+      "style": { "navigationBarTitleText": "编辑相册" }
+    },
+    {
+      "path": "pages/anniversary/edit",
+      "style": { "navigationBarTitleText": "编辑纪念日" }
+    },
+    {
+      "path": "pages/anniversary/detail",
+      "style": { "navigationBarTitleText": "事件详情" }
+    },
+    {
+      "path": "pages/guide/index",
+      "style": { "navigationBarTitleText": "" }
+    },
+    {
+      "path": "pages/bind/confirm",
+      "style": { "navigationBarTitleText": "" }
+    }
+  ],
+  "globalStyle": {
+    "navigationStyle": "custom",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "情侣纪念日",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#E8A0B4",
+    "backgroundColor": "rgba(255,255,255,0.9)",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/album/index",
+        "text": "相册",
+        "iconPath": "static/tabbar/album.png",
+        "selectedIconPath": "static/tabbar/album-active.png"
+      },
+      {
+        "pagePath": "pages/anniversary/index",
+        "text": "纪念日",
+        "iconPath": "static/tabbar/star.png",
+        "selectedIconPath": "static/tabbar/star-active.png"
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+// Design tokens
+$primary: #E8A0B4;
+$primary-light: #F2C8D4;
+$primary-dark: #C47A92;
+
+$secondary: #9FC5E8;
+$secondary-light: #C4DDF2;
+$secondary-dark: #6BA3D4;
+
+$surface: #FAF5F7;
+$surface-card: #FFFFFF;
+$surface-muted: #F3ECF0;
+
+$ink: #2D2A2E;
+$ink-secondary: #6B6570;
+$ink-light: #A39DA8;
+$ink-faint: #D1CDD3;
+
+// Glass effect (layered overlay, not backdrop-filter)
+$glass-bg: rgba(255, 255, 255, 0.72);
+$glass-bg-heavy: rgba(255, 255, 255, 0.88);
+$glass-border: rgba(255, 255, 255, 0.4);

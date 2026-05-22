@@ -1,0 +1,36 @@
+{
+  "name": "情侣纪念日",
+  "appid": "wxb80d8c73a8de9610",
+  "description": "情侣纪念日与相册小程序",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "devServer": {
+      "port": 5173,
+      "proxy": {
+        "/api": {
+          "target": "http://localhost:8080",
+          "changeOrigin": true
+        },
+        "/uploads": {
+          "target": "http://localhost:8080",
+          "changeOrigin": true
+        }
+      }
+    },
+    "router": {
+      "mode": "hash"
+    }
+  },
+  "mp-weixin": {
+    "appid": "wxb80d8c73a8de9610",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true
+  }
+}
