@@ -55,6 +55,9 @@
         <button class="start-btn pressable" :disabled="!nickname.trim()" :loading="loading" @tap="wxLogin">
           开始
         </button>
+        <view class="guest-action" @tap="goGuest">
+          <text class="guest-action-text">暂不登录，先随便逛逛 &gt;</text>
+        </view>
         <!-- #endif -->
 
         <!-- #ifdef H5 -->
@@ -84,6 +87,9 @@
         <button class="start-btn pressable" :disabled="!nickname.trim()" :loading="loading" @tap="h5Login">
           开始
         </button>
+        <view class="guest-action" @tap="goGuest">
+          <text class="guest-action-text">暂不登录，先随便逛逛 &gt;</text>
+        </view>
         <!-- #endif -->
       </view>
     </view>
@@ -100,6 +106,10 @@ const avatarUrl = ref('')
 const loading = ref(false)
 const hasInvite = ref(false)
 const inviteCode = ref('')
+
+function goGuest() {
+  uni.switchTab({ url: '/pages/index/index' })
+}
 
 // #ifdef MP-WEIXIN
 function onChooseAvatar(e) {
@@ -424,5 +434,17 @@ async function onLoginSuccess(user) {
 }
 .start-btn[disabled] {
   opacity: 0.5;
+}
+.guest-action {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0;
+}
+.guest-action-text {
+  font-size: 14px;
+  color: #C47A92;
+  letter-spacing: 1px;
 }
 </style>

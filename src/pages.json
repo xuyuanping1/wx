@@ -8,10 +8,6 @@
   },
   "pages": [
     {
-      "path": "pages/login/index",
-      "style": { "navigationBarTitleText": "" }
-    },
-    {
       "path": "pages/index/index",
       "style": { "navigationBarTitleText": "首页" }
     },
@@ -22,6 +18,10 @@
     {
       "path": "pages/anniversary/index",
       "style": { "navigationBarTitleText": "纪念日" }
+    },
+    {
+      "path": "pages/login/index",
+      "style": { "navigationBarTitleText": "登录" }
     },
     {
       "path": "pages/album/create",

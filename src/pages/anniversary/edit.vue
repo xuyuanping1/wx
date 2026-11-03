@@ -117,6 +117,7 @@
 import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { request } from '@/utils/request'
+import { isLoggedIn, requireLogin } from '@/utils/auth'
 
 const isEdit = ref(false)
 const editId = ref(null)
@@ -195,6 +196,7 @@ function onDateChange(e) {
 }
 
 async function submit() {
+  if (!requireLogin('登录后即可保存纪念日事件，是否前往登录？')) return
   if (!form.name.trim()) {
     uni.showToast({ title: '请输入事件名称', icon: 'none' })
     return

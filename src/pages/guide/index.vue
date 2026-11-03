@@ -78,12 +78,13 @@
 import { ref } from 'vue'
 import { onShareAppMessage } from '@dcloudio/uni-app'
 import { request } from '@/utils/request'
-import { getUserInfo } from '@/utils/auth'
+import { getUserInfo, requireLogin } from '@/utils/auth'
 
 const inviteToken = ref('')
 const isH5 = process.env.UNI_PLATFORM === 'h5'
 
 async function createInvite() {
+  if (!requireLogin('登录后即可生成专属邀请码，是否前往登录？')) return
   try {
     const invite = await request({ url: '/api/invite/create', method: 'POST' })
     inviteToken.value = invite.token

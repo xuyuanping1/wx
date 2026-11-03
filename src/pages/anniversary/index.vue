@@ -135,6 +135,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request, upload } from '@/utils/request'
 import { daysBetween, formatDate, getRepeatLabel } from '@/utils/date'
+import { isLoggedIn, requireLogin } from '@/utils/auth'
 // #ifdef H5
 import { bindNativeClick } from '@/utils/bindClick'
 // #endif
@@ -210,7 +211,21 @@ const cardBgImageStyle = computed(() => {
   return style
 })
 
+const mockEvents = [
+  { id: 'mock-1', title: '认识的第一天 (示例)', targetDate: '2024-01-01', repeatType: 'YEARLY', isMock: true },
+  { id: 'mock-2', title: '恋爱 100 天纪念 (示例)', targetDate: '2024-04-10', repeatType: 'NONE', isMock: true },
+  { id: 'mock-3', title: 'TA 的生日 (示例) 🎂', targetDate: '2024-08-15', repeatType: 'YEARLY', isMock: true },
+]
+
 async function loadData() {
+  if (!isLoggedIn()) {
+    days.value = 520
+    startDate.value = '2024-05-20'
+    hasAnniversary.value = true
+    hasPartner.value = false
+    events.value = mockEvents
+    return
+  }
   try {
     const anniversary = await request({ url: '/api/anniversary' })
     days.value = daysBetween(anniversary.startDate)
@@ -243,8 +258,8 @@ async function loadData() {
 
 onMounted(async () => {
   await loadData()
-  // 首次进入弹出提示
-  if (!hasAnniversary.value) {
+  // 首次进入弹出提示（仅当已登录且无纪念日时提示）
+  if (isLoggedIn() && !hasAnniversary.value) {
     forcePrompt.value = false
     showPrompt.value = true
   }
@@ -346,6 +361,10 @@ function getNextDate(event) {
 }
 
 function onMainCardClick() {
+  if (!isLoggedIn()) {
+    requireLogin('登录后即可设置属于你们的专属恋爱天数与卡片，是否前往登录？')
+    return
+  }
   if (cardDrawerVisible.value) return
   if (!hasAnniversary.value) {
     forcePrompt.value = true
@@ -564,6 +583,11 @@ function onAnniversarySaved(dateStr) {
 }
 
 function onEventAction(event) {
+  if (event.isMock) {
+    requireLogin('登录后即可编辑或管理属于你们的纪念日，是否前往登录？')
+    return
+  }
+  if (!requireLogin()) return
   uni.showActionSheet({
     itemList: ['编辑', '删除'],
     success: (res) => {
@@ -577,6 +601,7 @@ function onEventAction(event) {
 }
 
 async function deleteEvent(id) {
+  if (String(id).startsWith('mock-')) return
   try {
     await request({ url: `/api/event/${id}`, method: 'DELETE' })
     events.value = events.value.filter(e => e.id !== id)
@@ -585,10 +610,15 @@ async function deleteEvent(id) {
 }
 
 function goCreate() {
+  if (!requireLogin('登录后即可添加属于你们的专属纪念日与重要事件，是否前往登录？')) return
   uni.navigateTo({ url: '/pages/anniversary/edit' })
 }
 
 function goDetail(id) {
+  if (String(id).startsWith('mock-')) {
+    requireLogin('登录后即可查看和记录属于你们的事件详情，是否前往登录？')
+    return
+  }
   console.log('goDetail id:', id, 'url:', `/pages/anniversary/detail?id=${id}`)
   uni.navigateTo({ url: `/pages/anniversary/detail?id=${id}` })
 }

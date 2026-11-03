@@ -68,6 +68,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { request, upload } from '@/utils/request'
+import { isLoggedIn, requireLogin } from '@/utils/auth'
 
 const form = reactive({
   name: '',
@@ -83,6 +84,7 @@ function onBlurChange(e) {
 }
 
 function chooseCover() {
+  if (!requireLogin('登录后即可上传相册封面，是否前往登录？')) return
   uni.chooseImage({
     count: 1,
     sizeType: ['compressed'],
@@ -106,6 +108,7 @@ function clearCover() {
 }
 
 async function submit() {
+  if (!requireLogin('登录后即可创建属于你们的专属相册，是否前往登录？')) return
   if (!form.name.trim()) {
     uni.showToast({ title: '请输入相册名称', icon: 'none' })
     return

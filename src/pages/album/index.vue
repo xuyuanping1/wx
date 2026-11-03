@@ -42,22 +42,40 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '@/utils/request'
+import { isLoggedIn, requireLogin } from '@/utils/auth'
 
 const albums = ref([])
 
+const mockAlbums = [
+  { id: 'mock-1', name: '第一次约会 🌹 (示例)', description: '初见时的怦然心动', isMock: true },
+  { id: 'mock-2', name: '浪漫旅行 ✈️ (示例)', description: '看遍世间美好的风景', isMock: true },
+  { id: 'mock-3', name: '日常点滴 ☕️ (示例)', description: '平淡生活里的小确幸', isMock: true },
+]
+
 onShow(async () => {
+  if (!isLoggedIn()) {
+    albums.value = mockAlbums
+    return
+  }
   try {
-    albums.value = await request({ url: '/api/album/list' })
+    const list = await request({ url: '/api/album/list' })
+    albums.value = list && list.length > 0 ? list : []
   } catch (e) {
     albums.value = []
   }
 })
 
 function goDetail(album) {
+  if (album.isMock) {
+    requireLogin('登录后即可创建和管理属于你们的专属相册，是否前往登录？')
+    return
+  }
   uni.navigateTo({ url: `/pages/album/detail?id=${album.id}` })
 }
 
 function onAlbumAction(album) {
+  if (album.isMock) return
+  if (!requireLogin()) return
   uni.showActionSheet({
     itemList: ['删除'],
     itemColor: '#D4524A',
@@ -84,6 +102,7 @@ async function deleteAlbum(id) {
 }
 
 function goCreate() {
+  if (!requireLogin('登录后即可创建属于你们的专属相册，是否前往登录？')) return
   uni.navigateTo({ url: '/pages/album/create' })
 }
 </script>

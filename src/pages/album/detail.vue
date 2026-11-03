@@ -41,6 +41,7 @@
 import { ref, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request, upload } from '@/utils/request'
+import { isLoggedIn, requireLogin } from '@/utils/auth'
 
 const album = ref({})
 const photos = ref([])
@@ -125,10 +126,12 @@ function onImgError(photo) {
 }
 
 function goEdit() {
+  if (!requireLogin()) return
   uni.navigateTo({ url: `/pages/album/edit?id=${albumId}` })
 }
 
 function addPhoto() {
+  if (!requireLogin('登录后即可上传照片到相册，是否前往登录？')) return
   uni.chooseImage({
     count: 9,
     success: async (res) => {

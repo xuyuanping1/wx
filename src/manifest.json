@@ -25,6 +25,7 @@
   },
   "mp-weixin": {
     "appid": "wxb80d8c73a8de9610",
+    "cloud": true,
     "setting": {
       "urlCheck": false,
       "es6": true,

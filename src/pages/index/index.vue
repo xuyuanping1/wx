@@ -70,9 +70,13 @@
         <uni-icons type="compose" size="20" color="#2D2A2E" />
         <text class="drawer-item-text">调整首页</text>
       </view>
-      <view class="drawer-item danger" @click="confirmLogoutVisible = true">
+      <view v-if="isLoggedIn()" class="drawer-item danger" @click="confirmLogoutVisible = true">
         <uni-icons type="undo" size="20" color="#2D2A2E" />
         <text class="drawer-item-text">退出登录</text>
+      </view>
+      <view v-else class="drawer-item" @click="goLogin">
+        <uni-icons type="person" size="20" color="#C47A92" />
+        <text class="drawer-item-text" style="color: #C47A92; font-weight: 500;">去登录 / 注册</text>
       </view>
       <view class="drawer-cancel" @click="drawerVisible = false">
         <text class="drawer-cancel-text">取消</text>
@@ -174,7 +178,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request, upload } from '@/utils/request'
 import { daysBetween, formatDate } from '@/utils/date'
-import { getUserInfo, setLoginInfo, logout } from '@/utils/auth'
+import { getUserInfo, setLoginInfo, logout, isLoggedIn, requireLogin } from '@/utils/auth'
 // #ifdef H5
 import { bindNativeClick } from '@/utils/bindClick'
 // #endif
@@ -379,6 +383,7 @@ function pickEditBg() {
 }
 
 async function saveEdit() {
+  if (!requireLogin('登录后即可保存你的专属首页风格，是否前往登录？')) return
   uni.showLoading({ title: '保存中...' })
   try {
     const data = {}
@@ -463,6 +468,16 @@ onMounted(() => {
 onShow(() => { loadPageData() })
 
 async function loadPageData() {
+  if (!isLoggedIn()) {
+    days.value = 520
+    startDateStr.value = '2024 年 05 月 20 日'
+    myName.value = '我'
+    partnerName.value = 'TA'
+    hasPartner.value = false
+    hasAnniversary.value = true
+    showAnniversaryPrompt.value = false
+    return
+  }
   try {
     const freshUser = await request({ url: '/api/user/info' })
     if (freshUser) {
@@ -515,6 +530,10 @@ async function loadPageData() {
 }
 
 function onHeroClick() {
+  if (!isLoggedIn()) {
+    requireLogin('登录后即可设置属于你们的专属恋爱起始日，是否前往登录？')
+    return
+  }
   if (!hasAnniversary.value) {
     forcePrompt.value = true
     showAnniversaryPrompt.value = false
@@ -533,11 +552,19 @@ function doLogout() {
   confirmLogoutVisible.value = false
   drawerVisible.value = false
   logout()
-  uni.reLaunch({ url: '/pages/login/index' })
+  loadPageData()
+  uni.showToast({ title: '已退出登录', icon: 'none' })
 }
 
 function goAnniversary() { uni.switchTab({ url: '/pages/anniversary/index' }) }
-function goInvite() { uni.navigateTo({ url: '/pages/guide/index' }) }
+function goInvite() {
+  if (!requireLogin('登录后即可生成专属邀请码绑定另一半，是否前往登录？')) return
+  uni.navigateTo({ url: '/pages/guide/index' })
+}
+function goLogin() {
+  drawerVisible.value = false
+  uni.navigateTo({ url: '/pages/login/index' })
+}
 </script>
 
 <style scoped>

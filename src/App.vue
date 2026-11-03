@@ -5,6 +5,13 @@ import { request } from '@/utils/request'
 
 onLaunch(() => {
   // #ifdef MP-WEIXIN
+  if (wx.cloud) {
+    wx.cloud.init({
+      env: 'prod-d6gq4hetq0ef0087b',
+      traceUser: true,
+    })
+  }
+
   uni.login({
     provider: 'weixin',
     success: (loginRes) => {
