@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { request } from '@/utils/request'
 // #ifdef H5
 import { bindNativeClick } from '@/utils/bindClick'
@@ -30,6 +30,7 @@ import DatePicker from '@/components/DatePicker.vue'
 const props = defineProps({
   visible: { type: Boolean, default: false },
   force: { type: Boolean, default: false },
+  initialDate: { type: String, default: '' },
 })
 
 const emit = defineEmits(['update:visible', 'saved'])
@@ -37,15 +38,20 @@ const emit = defineEmits(['update:visible', 'saved'])
 const showDialog = ref(false)
 let shownAt = 0
 
-const today = new Date()
-const dateStr = ref('')
+function getTodayStr() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
+const dateStr = ref(props.initialDate || getTodayStr())
 
 watch(() => props.visible, (val) => {
   if (val) {
     if (props.force || !isDismissed()) {
       showDialog.value = true
       shownAt = Date.now()
-      uni.hideTabBar()
+      dateStr.value = props.initialDate || getTodayStr()
+      try { uni.hideTabBar() } catch (e) {}
       // #ifdef H5
       lockScroll()
       setTimeout(() => {
@@ -61,7 +67,14 @@ watch(() => props.visible, (val) => {
       bindNativeClick('.dialog-btn.confirm', () => onSave())
       // #endif
     }
+  } else {
+    showDialog.value = false
+    try { uni.showTabBar() } catch (e) {}
   }
+})
+
+onUnmounted(() => {
+  try { uni.showTabBar() } catch (e) {}
 })
 
 // #ifdef H5
@@ -84,7 +97,7 @@ function isDismissed() {
 function dismiss() {
   uni.setStorageSync('anniversary_prompt_dismissed', 'true')
   showDialog.value = false
-  uni.showTabBar()
+  try { uni.showTabBar() } catch (e) {}
   // #ifdef H5
   unlockScroll()
   // #endif
@@ -97,7 +110,8 @@ function onSkip() {
 
 async function onSave() {
   const ds = dateStr.value
-  if (ds > today.toISOString().split('T')[0]) {
+  const todayStr = getTodayStr()
+  if (ds > todayStr) {
     uni.showToast({ title: '不能选择未来日期', icon: 'none' })
     return
   }

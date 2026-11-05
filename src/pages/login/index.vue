@@ -219,11 +219,8 @@ async function onLoginSuccess(user) {
     }
   }
 
-  if (user.partnerId) {
-    uni.switchTab({ url: '/pages/index/index' })
-  } else {
-    uni.redirectTo({ url: '/pages/guide/index' })
-  }
+  // 登录成功后直接进入主页，保持底部 TabBar 正常显示
+  uni.switchTab({ url: '/pages/index/index' })
 }
 </script>
 

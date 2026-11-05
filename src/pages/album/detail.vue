@@ -82,10 +82,33 @@ function preview(index) {
 
 function onPhotoLongPress(photo) {
   uni.showActionSheet({
-    itemList: ['保存图片'],
+    itemList: ['保存图片', '删除照片'],
+    itemColor: '#333333',
     success: (res) => {
       if (res.tapIndex === 0) {
         saveImage(photo.url)
+      } else if (res.tapIndex === 1) {
+        if (!requireLogin('登录后即可管理照片，是否前往登录？')) return
+        uni.showModal({
+          title: '提示',
+          content: '确定要删除这张照片吗？',
+          confirmText: '删除',
+          confirmColor: '#FF6B6B',
+          success: async (mRes) => {
+            if (mRes.confirm) {
+              try {
+                await request({
+                  url: `/api/photo/${photo.id}`,
+                  method: 'DELETE',
+                })
+                photos.value = photos.value.filter(p => p.id !== photo.id)
+                uni.showToast({ title: '已删除', icon: 'success' })
+              } catch (e) {
+                uni.showToast({ title: '删除失败', icon: 'none' })
+              }
+            }
+          },
+        })
       }
     },
   })
@@ -135,15 +158,27 @@ function addPhoto() {
   uni.chooseImage({
     count: 9,
     success: async (res) => {
-      uni.showLoading({ title: '上传中...' })
-      for (const path of res.tempFilePaths) {
+      const paths = res.tempFilePaths || []
+      if (paths.length === 0) return
+      uni.showLoading({ title: `上传中 (0/${paths.length})...` })
+      let successCount = 0
+      let failCount = 0
+      for (let i = 0; i < paths.length; i++) {
+        uni.showLoading({ title: `上传中 (${i + 1}/${paths.length})...` })
         try {
-          await upload('/api/photo/upload', path, { albumId })
-        } catch (e) {}
+          await upload('/api/photo/upload', paths[i], { albumId })
+          successCount++
+        } catch (e) {
+          failCount++
+        }
       }
       uni.hideLoading()
       loadPhotos()
-      uni.showToast({ title: '上传完成', icon: 'success' })
+      if (failCount === 0) {
+        uni.showToast({ title: `成功上传 ${successCount} 张照片`, icon: 'success' })
+      } else {
+        uni.showToast({ title: `成功 ${successCount} 张，失败 ${failCount} 张`, icon: 'none' })
+      }
     },
   })
 }

@@ -53,6 +53,7 @@ const mockAlbums = [
 ]
 
 onShow(async () => {
+  try { uni.showTabBar() } catch (e) {}
   if (!isLoggedIn()) {
     albums.value = mockAlbums
     return

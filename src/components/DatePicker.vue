@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, watch, onMounted, nextTick } from 'vue'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
@@ -32,11 +32,29 @@ const emit = defineEmits(['update:modelValue'])
 
 const ITEM_H = 42
 const now = new Date()
-const sel = ref([now.getFullYear(), now.getMonth() + 1, now.getDate()])
+
+function parseDate(str) {
+  if (!str) return null
+  const parts = str.split(/[-/]/)
+  if (parts.length >= 3) {
+    const y = parseInt(parts[0], 10)
+    const m = parseInt(parts[1], 10)
+    const d = parseInt(parts[2], 10)
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return [y, m, d]
+    }
+  }
+  return null
+}
+
+const initialDate = parseDate(props.modelValue) || [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+const effectiveMinYear = Math.min(props.minYear, initialDate[0])
+
+const sel = ref([...initialDate])
 
 function makeYears() {
   const a = []
-  for (let y = props.minYear; y <= now.getFullYear(); y++) a.push(y)
+  for (let y = effectiveMinYear; y <= now.getFullYear(); y++) a.push(y)
   return a
 }
 function makeDays() { return Array.from({ length: new Date(sel.value[0], sel.value[1], 0).getDate() }, (_, i) => i + 1) }
@@ -48,10 +66,29 @@ const columns = reactive([
 ])
 
 const scrollTop = reactive([
-  (sel.value[0] - props.minYear) * ITEM_H,
-  (sel.value[1] - 1) * ITEM_H,
-  (sel.value[2] - 1) * ITEM_H,
+  Math.max(0, (sel.value[0] - effectiveMinYear) * ITEM_H),
+  Math.max(0, (sel.value[1] - 1) * ITEM_H),
+  Math.max(0, (sel.value[2] - 1) * ITEM_H),
 ])
+
+watch(() => props.modelValue, (newVal) => {
+  if (!newVal) return
+  const parsed = parseDate(newVal)
+  if (!parsed) return
+  if (parsed[0] === sel.value[0] && parsed[1] === sel.value[1] && parsed[2] === sel.value[2]) return
+
+  sel.value = [...parsed]
+  columns[0].current = parsed[0]
+  columns[1].current = parsed[1]
+  columns[2].items = makeDays()
+  columns[2].current = parsed[2]
+
+  nextTick(() => {
+    scrollTop[0] = Math.max(0, (parsed[0] - effectiveMinYear) * ITEM_H)
+    scrollTop[1] = Math.max(0, (parsed[1] - 1) * ITEM_H)
+    scrollTop[2] = Math.max(0, (parsed[2] - 1) * ITEM_H)
+  })
+})
 
 function onScroll(ci, e) {
   const top = e.detail.scrollTop

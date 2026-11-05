@@ -29,7 +29,7 @@
     </view>
 
     <!-- 纪念日提示弹窗 -->
-    <AnniversaryPrompt v-model:visible="showAnniversaryPrompt" :force="forcePrompt" @saved="onAnniversarySaved" />
+    <AnniversaryPrompt v-model:visible="showAnniversaryPrompt" :force="forcePrompt" :initial-date="rawStartDate" @saved="onAnniversarySaved" />
 
     <!-- Partner card (编辑模式下隐藏) -->
     <view v-if="!editMode" class="partner-card" @click="goAnniversary">
@@ -187,6 +187,7 @@ import AnniversaryPrompt from '@/components/AnniversaryPrompt.vue'
 // ====== 页面数据 ======
 const days = ref(0)
 const startDateStr = ref('')
+const rawStartDate = ref('')
 const myName = ref('')
 const myAvatar = ref('')
 const partnerName = ref('')
@@ -465,12 +466,18 @@ onMounted(() => {
   loadPageData()
 })
 
-onShow(() => { loadPageData() })
+onShow(() => {
+  if (!editMode.value && !drawerVisible.value) {
+    try { uni.showTabBar() } catch (e) {}
+  }
+  loadPageData()
+})
 
 async function loadPageData() {
   if (!isLoggedIn()) {
     days.value = 520
     startDateStr.value = '2024 年 05 月 20 日'
+    rawStartDate.value = '2024-05-20'
     myName.value = '我'
     partnerName.value = 'TA'
     hasPartner.value = false
@@ -508,6 +515,7 @@ async function loadPageData() {
   }
   try {
     const anniversary = await request({ url: '/api/anniversary' })
+    rawStartDate.value = anniversary.startDate || ''
     days.value = daysBetween(anniversary.startDate)
     startDateStr.value = formatDate(anniversary.startDate, 'YYYY 年 MM 月 DD 日')
     hasAnniversary.value = true
@@ -522,6 +530,7 @@ async function loadPageData() {
     customTitle.value = anniversary.customTitle || ''
     textColor.value = anniversary.textColor || ''
   } catch (e) {
+    rawStartDate.value = ''
     days.value = 0
     hasAnniversary.value = false
     forcePrompt.value = false
@@ -534,14 +543,13 @@ function onHeroClick() {
     requireLogin('登录后即可设置属于你们的专属恋爱起始日，是否前往登录？')
     return
   }
-  if (!hasAnniversary.value) {
-    forcePrompt.value = true
-    showAnniversaryPrompt.value = false
-    nextTick(() => { showAnniversaryPrompt.value = true })
-  }
+  forcePrompt.value = true
+  showAnniversaryPrompt.value = false
+  nextTick(() => { showAnniversaryPrompt.value = true })
 }
 
 function onAnniversarySaved(dateStr) {
+  rawStartDate.value = dateStr
   hasAnniversary.value = true
   forcePrompt.value = false
   days.value = daysBetween(dateStr)
@@ -553,6 +561,7 @@ function doLogout() {
   drawerVisible.value = false
   logout()
   loadPageData()
+  try { uni.showTabBar() } catch (e) {}
   uni.showToast({ title: '已退出登录', icon: 'none' })
 }
 

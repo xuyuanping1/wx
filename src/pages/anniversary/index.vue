@@ -21,7 +21,7 @@
     </view>
 
     <!-- 纪念日提示弹窗 -->
-    <AnniversaryPrompt v-model:visible="showPrompt" :force="forcePrompt" @saved="onAnniversarySaved" />
+    <AnniversaryPrompt v-model:visible="showPrompt" :force="forcePrompt" :initial-date="startDate" @saved="onAnniversarySaved" />
 
     <!-- 抽屉遮罩 -->
     <view v-if="cardDrawerVisible" class="drawer-mask" @click="closeDrawer" />
@@ -134,7 +134,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request, upload } from '@/utils/request'
-import { daysBetween, formatDate, getRepeatLabel } from '@/utils/date'
+import { daysBetween, formatDate, getRepeatLabel, getClampedDate } from '@/utils/date'
 import { isLoggedIn, requireLogin } from '@/utils/auth'
 // #ifdef H5
 import { bindNativeClick } from '@/utils/bindClick'
@@ -270,6 +270,9 @@ onMounted(async () => {
 
 // 每次页面显示时刷新数据（navigateBack 后也会触发）
 onShow(() => {
+  if (!cardDrawerVisible.value) {
+    try { uni.showTabBar() } catch (e) {}
+  }
   loadData()
 })
 
@@ -294,22 +297,22 @@ function getEventDays(event) {
   let lastOccurrence, nextOccurrence
 
   if (event.repeatType === 'YEARLY') {
-    const thisYear = new Date(today.getFullYear(), target.getMonth(), target.getDate())
+    const thisYear = getClampedDate(today.getFullYear(), target.getMonth(), target.getDate())
     if (thisYear <= today) {
       lastOccurrence = thisYear
-      nextOccurrence = new Date(today.getFullYear() + 1, target.getMonth(), target.getDate())
+      nextOccurrence = getClampedDate(today.getFullYear() + 1, target.getMonth(), target.getDate())
     } else {
-      lastOccurrence = new Date(today.getFullYear() - 1, target.getMonth(), target.getDate())
+      lastOccurrence = getClampedDate(today.getFullYear() - 1, target.getMonth(), target.getDate())
       nextOccurrence = thisYear
     }
   } else if (event.repeatType === 'MONTHLY') {
-    // 本月的 occurrence
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), target.getDate())
+    // 本月的 occurrence（考虑月份天数限制，如31号在2月/4月自动对齐月末）
+    const thisMonth = getClampedDate(today.getFullYear(), today.getMonth(), target.getDate())
     if (thisMonth <= today) {
       lastOccurrence = thisMonth
-      nextOccurrence = new Date(today.getFullYear(), today.getMonth() + 1, target.getDate())
+      nextOccurrence = getClampedDate(today.getFullYear(), today.getMonth() + 1, target.getDate())
     } else {
-      lastOccurrence = new Date(today.getFullYear(), today.getMonth() - 1, target.getDate())
+      lastOccurrence = getClampedDate(today.getFullYear(), today.getMonth() - 1, target.getDate())
       nextOccurrence = thisMonth
     }
   }
@@ -347,11 +350,11 @@ function getNextDate(event) {
 
   let nextOccurrence
   if (event.repeatType === 'YEARLY') {
-    const thisYear = new Date(today.getFullYear(), target.getMonth(), target.getDate())
-    nextOccurrence = thisYear > today ? thisYear : new Date(today.getFullYear() + 1, target.getMonth(), target.getDate())
+    const thisYear = getClampedDate(today.getFullYear(), target.getMonth(), target.getDate())
+    nextOccurrence = thisYear > today ? thisYear : getClampedDate(today.getFullYear() + 1, target.getMonth(), target.getDate())
   } else if (event.repeatType === 'MONTHLY') {
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), target.getDate())
-    nextOccurrence = thisMonth > today ? thisMonth : new Date(today.getFullYear(), today.getMonth() + 1, target.getDate())
+    const thisMonth = getClampedDate(today.getFullYear(), today.getMonth(), target.getDate())
+    nextOccurrence = thisMonth > today ? thisMonth : getClampedDate(today.getFullYear(), today.getMonth() + 1, target.getDate())
   }
 
   const m = String(nextOccurrence.getMonth() + 1).padStart(2, '0')
@@ -372,11 +375,9 @@ function onMainCardClick() {
     nextTick(() => {
       showPrompt.value = true
     })
-  } else if (!hasPartner.value) {
-    uni.navigateTo({ url: '/pages/guide/index' })
   } else {
     cardDrawerVisible.value = true
-    uni.hideTabBar()
+    try { uni.hideTabBar() } catch (e) {}
   }
 }
 
@@ -384,7 +385,7 @@ function closeDrawer() {
   cardDrawerVisible.value = false
   editingCardBg.value = false
   editTextColor.value = ''
-  uni.showTabBar()
+  try { uni.showTabBar() } catch (e) {}
 }
 
 function updateAnniversary() {

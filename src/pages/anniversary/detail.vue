@@ -154,7 +154,7 @@
 import { ref, reactive, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request, upload } from '@/utils/request'
-import { formatDate, getRepeatLabel } from '@/utils/date'
+import { formatDate, getRepeatLabel, getClampedDate } from '@/utils/date'
 
 const event = ref({})
 const photos = ref([])
@@ -264,24 +264,19 @@ function buildOccurrences() {
   if (ev.repeatType === 'YEARLY') {
     const startYear = Math.max(target.getFullYear(), 2001)
     for (let y = today.getFullYear(); y >= startYear; y--) {
-      const d = new Date(y, target.getMonth(), target.getDate())
+      const d = getClampedDate(y, target.getMonth(), target.getDate())
       if (d <= today) dates.push(d)
     }
     // 加一个最近的未来日期
     const nextYear = today.getFullYear() + 1
-    const nextDate = new Date(nextYear, target.getMonth(), target.getDate())
+    const nextDate = getClampedDate(nextYear, target.getMonth(), target.getDate())
     if (!dates.find(d => d.getFullYear() === nextYear)) dates.push(nextDate)
   } else if (ev.repeatType === 'MONTHLY') {
     const day = target.getDate()
     let y = today.getFullYear()
     let m = today.getMonth()
     for (let i = 0; i < 24; i++) {
-      const d = new Date(y, m, day)
-      if (d.getMonth() !== m) {
-        m--
-        if (m < 0) { m = 11; y-- }
-        continue
-      }
+      const d = getClampedDate(y, m, day)
       if (d <= today) dates.push(d)
       m--
       if (m < 0) { m = 11; y-- }
@@ -289,8 +284,8 @@ function buildOccurrences() {
     // 加一个最近的未来月份
     const nm = today.getMonth() + 1
     const ny = nm > 11 ? today.getFullYear() + 1 : today.getFullYear()
-    const nextDate = new Date(ny, nm > 11 ? 0 : nm, day)
-    if (nextDate.getMonth() === (nm > 11 ? 0 : nm)) dates.push(nextDate)
+    const nextDate = getClampedDate(ny, nm > 11 ? 0 : nm, day)
+    dates.push(nextDate)
   } else {
     if (target <= today) dates.push(target)
     else dates.push(target) // 单次未来事件也显示
@@ -459,21 +454,21 @@ function getEventDays(event) {
 
   let lastOccurrence, nextOccurrence
   if (event.repeatType === 'YEARLY') {
-    const thisYear = new Date(today.getFullYear(), target.getMonth(), target.getDate())
+    const thisYear = getClampedDate(today.getFullYear(), target.getMonth(), target.getDate())
     if (thisYear <= today) {
       lastOccurrence = thisYear
-      nextOccurrence = new Date(today.getFullYear() + 1, target.getMonth(), target.getDate())
+      nextOccurrence = getClampedDate(today.getFullYear() + 1, target.getMonth(), target.getDate())
     } else {
-      lastOccurrence = new Date(today.getFullYear() - 1, target.getMonth(), target.getDate())
+      lastOccurrence = getClampedDate(today.getFullYear() - 1, target.getMonth(), target.getDate())
       nextOccurrence = thisYear
     }
   } else if (event.repeatType === 'MONTHLY') {
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), target.getDate())
+    const thisMonth = getClampedDate(today.getFullYear(), today.getMonth(), target.getDate())
     if (thisMonth <= today) {
       lastOccurrence = thisMonth
-      nextOccurrence = new Date(today.getFullYear(), today.getMonth() + 1, target.getDate())
+      nextOccurrence = getClampedDate(today.getFullYear(), today.getMonth() + 1, target.getDate())
     } else {
-      lastOccurrence = new Date(today.getFullYear(), today.getMonth() - 1, target.getDate())
+      lastOccurrence = getClampedDate(today.getFullYear(), today.getMonth() - 1, target.getDate())
       nextOccurrence = thisMonth
     }
   }
